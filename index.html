@@ -511,7 +511,7 @@ footer .footer-links a:hover { color: #fff; }
       <!-- مشروع 2 — أول + عرضي يمتد على كامل العرض -->
       <div class="work-card wide-card" onclick="openModal('videos/2ع.mp4')">
         <div class="video-wrap landscape-wrap">
-          <video src="videos/2ع.mp4" muted loop playsinline preload="metadata"></video>
+          <video src="videos/2ع.mp4#t=0.001" muted loop playsinline preload="metadata"></video>
           <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
         </div>
         <div class="card-info">
@@ -524,7 +524,7 @@ footer .footer-links a:hover { color: #fff; }
       <!-- بقية المشاريع ريلز 9:16 -->
       <div class="work-card" onclick="openModal('videos/159498.mov')">
         <div class="video-wrap">
-          <video src="videos/159498.mov" muted loop playsinline preload="metadata"></video>
+          <video src="videos/159498.mov#t=0.001" muted loop playsinline preload="metadata"></video>
           <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
         </div>
         <div class="card-info">
@@ -536,7 +536,7 @@ footer .footer-links a:hover { color: #fff; }
 
       <div class="work-card" onclick="openModal('videos/KNG.mov')">
         <div class="video-wrap">
-          <video src="videos/KNG.mov" muted loop playsinline preload="metadata"></video>
+          <video src="videos/KNG.mov#t=0.001" muted loop playsinline preload="metadata"></video>
           <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
         </div>
         <div class="card-info">
@@ -548,7 +548,7 @@ footer .footer-links a:hover { color: #fff; }
 
       <div class="work-card" onclick="openModal('videos/kh1.mov')">
         <div class="video-wrap">
-          <video src="videos/kh1.mov" muted loop playsinline preload="metadata"></video>
+          <video src="videos/kh1.mov#t=0.001" muted loop playsinline preload="metadata"></video>
           <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
         </div>
         <div class="card-info">
@@ -560,7 +560,7 @@ footer .footer-links a:hover { color: #fff; }
 
       <div class="work-card" onclick="openModal('videos/شامي 2.mov')">
         <div class="video-wrap">
-          <video src="videos/شامي 2.mov" muted loop playsinline preload="metadata"></video>
+          <video src="videos/شامي 2.mov#t=0.001" muted loop playsinline preload="metadata"></video>
           <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
         </div>
         <div class="card-info">
@@ -572,7 +572,7 @@ footer .footer-links a:hover { color: #fff; }
 
       <div class="work-card" onclick="openModal('videos/فارغ1.mov')">
         <div class="video-wrap">
-          <video src="videos/فارغ1.mov" muted loop playsinline preload="metadata"></video>
+          <video src="videos/فارغ1.mov#t=0.001" muted loop playsinline preload="metadata"></video>
           <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
         </div>
         <div class="card-info">
@@ -584,7 +584,7 @@ footer .footer-links a:hover { color: #fff; }
 
       <div class="work-card" onclick="openModal('videos/فيت اص.mov')">
         <div class="video-wrap">
-          <video src="videos/فيت اص.mov" muted loop playsinline preload="metadata"></video>
+          <video src="videos/فيت اص.mov#t=0.001" muted loop playsinline preload="metadata"></video>
           <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
         </div>
         <div class="card-info">
@@ -596,7 +596,7 @@ footer .footer-links a:hover { color: #fff; }
 
       <div class="work-card" onclick="openModal('videos/مونتاج جبان.mov')">
         <div class="video-wrap">
-          <video src="videos/مونتاج جبان.mov" muted loop playsinline preload="metadata"></video>
+          <video src="videos/مونتاج جبان.mov#t=0.001" muted loop playsinline preload="metadata"></video>
           <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
         </div>
         <div class="card-info">
@@ -775,6 +775,26 @@ footer .footer-links a:hover { color: #fff; }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { modalEl.classList.remove('open'); modalVideo.pause(); modalVideo.src = ''; document.body.style.overflow = ''; }
+  });
+
+  // capture first frame as poster so cards aren't black on mobile
+  document.querySelectorAll('.work-card video').forEach(vid => {
+    const capture = () => {
+      if (vid.dataset.posterSet) return;
+      try {
+        const c = document.createElement('canvas');
+        c.width = vid.videoWidth || 320;
+        c.height = vid.videoHeight || 180;
+        c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
+        const url = c.toDataURL('image/jpeg', 0.7);
+        if (!url.startsWith('data:image/jpeg')) return;
+        vid.poster = url;
+        vid.dataset.posterSet = '1';
+      } catch(e) {}
+    };
+    vid.addEventListener('loadeddata', capture);
+    vid.addEventListener('seeked', capture);
+    if (vid.readyState >= 2) capture();
   });
 
   // hover-to-play previews
