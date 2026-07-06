@@ -941,7 +941,8 @@ footer .footer-links a:hover { color: #fff; }
 
   projects.forEach(p => {
     const isWide = p.isWide === true;
-    const videoSrc = (p.videoUrl || '') + '#t=0.001';
+    const rawSrc = p.videoUrl || p.videoFile || '';
+    const videoSrc = rawSrc ? rawSrc + '#t=0.001' : '';
     const card = document.createElement('div');
     card.className = 'work-card' + (isWide ? ' wide-card' : '');
     card.setAttribute('onclick', `openModal('${p.videoFile || ''}')`);
