@@ -931,8 +931,8 @@ footer .footer-links a:hover { color: #fff; }
     }
   }
 
-  // جلب المشاريع مرتّبة
-  const projects = await sanityFetch(`*[_type == "project"] | order(order asc)`);
+  // جلب المشاريع مرتّبة مع رابط الفيديو
+  const projects = await sanityFetch(`*[_type == "project"] | order(order asc) { ..., "videoUrl": video.asset->url }`);
   if (!projects || projects.length === 0) return;
 
   const grid = document.querySelector('.works-grid');
@@ -941,7 +941,7 @@ footer .footer-links a:hover { color: #fff; }
 
   projects.forEach(p => {
     const isWide = p.isWide === true;
-    const videoSrc = p.videoFile ? p.videoFile + '#t=0.001' : '';
+    const videoSrc = (p.videoUrl || '') + '#t=0.001';
     const card = document.createElement('div');
     card.className = 'work-card' + (isWide ? ' wide-card' : '');
     card.setAttribute('onclick', `openModal('${p.videoFile || ''}')`);
