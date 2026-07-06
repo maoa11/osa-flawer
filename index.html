@@ -896,5 +896,90 @@ footer .footer-links a:hover { color: #fff; }
 
 })();
 </script>
+
+<!-- Sanity CMS Integration -->
+<script>
+(async () => {
+  const PROJECT_ID = '0wskhyed';
+  const DATASET    = 'production';
+  const API_VER    = '2024-01-01';
+
+  async function sanityFetch(query) {
+    const url = `https://${PROJECT_ID}.api.sanity.io/v${API_VER}/data/query/${DATASET}?query=${encodeURIComponent(query)}`;
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      return json.result;
+    } catch(e) { return null; }
+  }
+
+  // جلب إعدادات الموقع
+  const settings = await sanityFetch(`*[_type == "siteSettings"][0]`);
+  if (settings) {
+    const h1 = document.querySelector('#hero h1');
+    if (settings.heroDescription) {
+      document.querySelector('#hero .desc').textContent = settings.heroDescription;
+    }
+    // تحديث رقم الهاتف في الـ nav
+    if (settings.phone) {
+      const phoneCta = document.querySelector('a[href^="tel"]');
+      if (phoneCta) { phoneCta.href = `tel:+966${settings.phone.replace(/^0/, '')}`; phoneCta.lastChild.textContent = settings.phone; }
+    }
+    if (settings.whatsapp) {
+      const waLink = document.querySelector('a[href^="https://wa.me"]');
+      if (waLink) waLink.href = `https://wa.me/${settings.whatsapp}`;
+    }
+  }
+
+  // جلب المشاريع مرتّبة
+  const projects = await sanityFetch(`*[_type == "project"] | order(order asc)`);
+  if (!projects || projects.length === 0) return;
+
+  const grid = document.querySelector('.works-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  projects.forEach(p => {
+    const isWide = p.isWide === true;
+    const videoSrc = p.videoFile ? p.videoFile + '#t=0.001' : '';
+    const card = document.createElement('div');
+    card.className = 'work-card' + (isWide ? ' wide-card' : '');
+    card.setAttribute('onclick', `openModal('${p.videoFile || ''}')`);
+    card.innerHTML = `
+      <div class="video-wrap${isWide ? ' landscape-wrap' : ''}">
+        <video src="${videoSrc}" muted loop playsinline preload="metadata"></video>
+        <div class="play-btn"><span><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
+      </div>
+      <div class="card-info">
+        <h4>${p.title || ''}</h4>
+        <p>${p.description || ''}</p>
+        <span class="card-tag">${p.tag || ''}</span>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  // إعادة تشغيل hover-to-play على الكروت الجديدة
+  grid.querySelectorAll('.work-card').forEach(card => {
+    const vid = card.querySelector('video');
+    if (!vid) return;
+    // canvas poster
+    const capture = () => {
+      if (vid.dataset.posterSet) return;
+      try {
+        const c = document.createElement('canvas');
+        c.width = vid.videoWidth || 320; c.height = vid.videoHeight || 180;
+        c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
+        const url = c.toDataURL('image/jpeg', 0.7);
+        if (url.startsWith('data:image/jpeg')) { vid.poster = url; vid.dataset.posterSet = '1'; }
+      } catch(e) {}
+    };
+    vid.addEventListener('loadeddata', capture);
+    vid.addEventListener('seeked', capture);
+    if (vid.readyState >= 2) capture();
+    card.addEventListener('mouseenter', () => vid.play().catch(()=>{}));
+    card.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
+  });
+})();
+</script>
 </body>
 </html>
